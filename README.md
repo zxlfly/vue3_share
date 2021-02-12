@@ -11,5 +11,9 @@ npm run dev
 # api
 基础的使用方法
 
+# app
+工程化示例
 # myvue
 实现一个简版的vue3
+
+# 源码调试

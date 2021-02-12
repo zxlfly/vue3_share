@@ -1,4 +1,4 @@
-# [基于vue2的变动具体细节产看官方文档](https://v3.cn.vuejs.org/guide/migration/introduction.html#%E6%A6%82%E8%A7%88)
+# [基于vue2的变动具体细节查看官方文档](https://v3.cn.vuejs.org/guide/migration/introduction.html#%E6%A6%82%E8%A7%88)
 ### 新特性（一部分）
 - Fragments
   - vue3中可以有多个根，不再是单根的形式
@@ -68,9 +68,7 @@ funtional.vue
      - 第一个参数为一个函数，以函数的形式返回对应的值
    - 侦听多个源
      - 侦听器还可以使用数组同时侦听多个源
-     - ```watch([fooRef, barRef], ([foo, bar], [prevFoo, prevBar]) => {
-        /* ... */
-        })```
+     - ```watch([fooRef, barRef], ([foo, bar], [prevFoo, prevBar]) => {/* ... */})```
  - watchEffect
    - 在响应式地跟踪其依赖项时立即运行一个函数，并在更改依赖项时重新运行它。
  - keycode作为v-on的修饰符被移除
