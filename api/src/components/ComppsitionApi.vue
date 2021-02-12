@@ -20,6 +20,7 @@ export default {
     // 用法是在script上加setup="props, { emit }"
     // 就不需要写setup方法和return了
     
+    //接受props和context两个参数
     setup() {
         //  创建响应式数据
         //  const data = reactive({

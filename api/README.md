@@ -77,3 +77,5 @@ funtional.vue
    - 只能使用别名
  - ``$on、$off、$once``被移除
    - 可以使用第三方库实现
+ - 执行 setup 时，组件实例尚未被创建
+   - 只能访问``props attrs slots emit``这几个属性
