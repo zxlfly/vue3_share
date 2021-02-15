@@ -221,6 +221,7 @@ module.exports = {
 ```
 启动脚本``"test": "jest"``
 测试代码``tests/example.spec.js``
+单vue文件测试可以查看[@vue/test-utils](https://vue-test-utils.vuejs.org/zh/guides/#%E8%B5%B7%E6%AD%A5)
 lint配置添加jest环境，要不然会有错误提示：
 ```
 module.exports = {
