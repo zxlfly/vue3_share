@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "isolatedModules": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "experimentalDecorators": true,
+        "lib": [
+            "dom",
+            "esnext"
+        ],
+        "esModuleInterop":true
+    },
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

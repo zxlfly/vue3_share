@@ -6,11 +6,9 @@ cd projectname
 npm install
 npm run dev
 ```
-上面就是通过``vite``的方式创建vue3的项目
-
+上面就是通过``vite``的方式创建vue3的项目，在工程化示例中会有介绍
 # api
 基础的使用方法
-
 # app
 工程化示例
 # myvue
