@@ -15,3 +15,11 @@ npm run dev
 实现一个简版的vue3
 
 # 源码调试
+- GitHub上面迁出vue3的源码
+  - 建议先导入到gitee，不然很慢
+- 安装依赖
+  - ``yarn --ignore-scripts``
+- ⽣成sourcemap⽂件，package.json
+  - ``"dev": "node scripts/dev.js --sourcemap"``
+- 编译： ``yarn dev``
+- 然后随意调试
