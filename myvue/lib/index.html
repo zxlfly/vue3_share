@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id='app'></div>
+    <button id='btn'>click</button>
+    <script src="./vue3.js"></script>
+    <script>
+        const root = document.getElementById('app')
+        const btn = document.getElementById('btn')
+        const obj = reactive({
+            name:'点击次数',
+            v:0,
+            s:"点击之后会删除（变成undefined）"
+        })
+        let double= computed(()=>obj.v*2)
+        effect(()=>{
+            root.innerHTML=`<h1>${obj.name}-${obj.v}-双倍${double.value}-会被删除的${obj.s}</h1>`
+        })
+        btn.addEventListener('click',function(){
+            obj.v+=1
+            delete obj.s
+        },false)
+    </script>
+</body>
+</html>

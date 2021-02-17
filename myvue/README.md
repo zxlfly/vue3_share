@@ -88,3 +88,18 @@ JavaScript 的对象（Object），本质上是键值对的集合（Hash 结构�
 - WeakSet.prototype.add(value)：向 WeakSet 实例添加一个新成员。
 - WeakSet.prototype.delete(value)：清除 WeakSet 实例的指定成员。
 - WeakSet.prototype.has(value)：返回一个布尔值，表示某个值是否在 WeakSet 实例之中。
+
+# proxy响应式体验
+proxy.js
+
+# 实现响应式功能
+- effect
+  - 更新函数
+  - 先执行一次触发里面的响应式数据的getter
+  - 同时也会保存一份备用
+- track
+  - getter中调用
+  - 把储存的回调函数和当前的target，key之间建立映射关系
+- trigger
+  - setter中调用
+  - 吧target，key对应的函数都执行一遍
