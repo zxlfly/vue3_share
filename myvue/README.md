@@ -1,3 +1,9 @@
+# init
+实现简版vue初始化过程
+# reactive
+实现简版响应式
+# min-vue
+实现简版响应式
 # 使用到的es6特性方法
 ## Proxy
 Proxy 用于修改某些操作的默认行为，可以理解成，在目标对象之前架设一层“拦截”，外界对该对象的访问，都必须先通过这层拦截
@@ -93,13 +99,14 @@ JavaScript 的对象（Object），本质上是键值对的集合（Hash 结构�
 proxy.js
 
 # 实现响应式功能
-- effect
-  - 更新函数
-  - 先执行一次触发里面的响应式数据的getter
-  - 同时也会保存一份备用
+- effect(fn)
+  - 接受副作用函数
+  - 会保存一份到effectStack中备用
+  - 执行一次触发里面的响应式数据的getter
 - track
-  - getter中调用
-  - 把储存的回调函数和当前的target，key之间建立映射关系
+  - getter中调用，依赖搜集
+  - 把储存的回调函数和当前的target，key之间建立映射关系，未来如果目标发生变化，直接找到对应的副作用函数执行就可以完成更新
+  - 结构：``{target:{key(Map类型):[fn1,...](Set类型)}}(WeakMap类型)``
 - trigger
   - setter中调用
-  - 吧target，key对应的函数都执行一遍
+  - 把target，key对应的函数都执行一遍

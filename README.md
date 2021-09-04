@@ -11,6 +11,8 @@ npm run dev
 基础的使用方法
 # app
 工程化示例
+# renderer
+自定义渲染器
 # myvue
 实现一个简版的vue3
 
@@ -23,3 +25,8 @@ npm run dev
   - ``"dev": "node scripts/dev.js --sourcemap"``
 - 编译： ``yarn dev``
 - 然后随意调试
+
+## 自定义渲染器renderer
+将获取到的vnode转换为特定平台的特定操作。
+
+## [vue3核心源码解析](https://www.processon.com/view/link/612e7c9cf346fb01fa4e800f)

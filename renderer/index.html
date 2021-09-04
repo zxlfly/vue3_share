@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>利⽤canvas画图</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <script src="./dist/vue.global.js"></script>
+    <script>
+        const draw = (el, noClear) => {
+            if (!noClear) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+            }
+            if (el.tag == 'chart') {
+                const { data } = el;
+                const barWidth = canvas.width / 10,
+                    gap = 20,
+                    paddingLeft = (data.length * barWidth + (data.length - 1) * gap) / 2,
+                    paddingBottom = 10;
+                // x轴
+                // 柱状图
+                data.forEach(({ title, score, color }, index) => {
+                    const x = paddingLeft + index * (barWidth + gap)
+                    const y = canvas.height - paddingBottom - score
+                    ctx.fillStyle = color
+                    ctx.fillRect(x, y, barWidth, score)
+                    // text
+                });
+            }
+            // 递归绘制⼦节点
+            el.childs && el.childs.forEach(child => draw(child, true));
+        }
+        // 创建一个渲染器 需要提供属性和节点操作
+        const { createRenderer } = Vue
+        const nodeOps = {
+            createElement: (tag, isSVG, is) => {
+                // 因为是在canvas上画画，所以不需要创建元素，直接返回数据对象就行了
+                return { tag }
+            },
+            // 更新属性
+            patchProp(el, key, prevValue, nextValue) {
+                el[key] = nextValue
+            },
+            insert: (child, parent, anchor) => {
+                // 因为我们追加了一个canvas，只有它有nodetype
+                if (parent.nodeType === 1) {
+                    draw(child)
+                }
+            }
+        }
+        const renderer = createRenderer(nodeOps)
+        // 创建画布
+        let ctx
+        let canvas
+        function createCanvasApp(params) {
+            const app = renderer.createApp(params)
+            const mount = app.mount
+            app.mount = function (selector) {
+                canvas = document.createElement('canvas')
+                canvas.width = window.innerWidth
+                canvas.height = window.innerHeight
+                document.querySelector(selector).appendChild(canvas)
+                ctx = canvas.getContext('2d')
+                mount(canvas)
+            }
+            return app
+        }
+        // 创建实例
+        createCanvasApp({
+            template: '<chart :data="chartData"></chart>',
+            data() {
+                return {
+                    chartData: [
+                        {
+                            title: '数学', score: '100', color: "brown"
+                        }, {
+                            title: '语文', score: '150', color: "green"
+                        }, {
+                            title: '化学', score: '80', color: "skyblue"
+                        }, {
+                            title: '物理', score: '70', color: "gold"
+                        }
+                    ]
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app"></div>
+    <script>
+        const createAppAPI =render=>{
+            return function(options){
+                // 创建app对象
+                const app ={
+                    mount(rootContainer){
+                        // vode这里直接写一个
+                        // 根组件vnode
+                        const vnode = {
+                            tag:options
+                        }
+                        render(vnode,rootContainer)
+                    }
+                }
+                return app
+            }
+        }
+        //
+        const createRenderer = (nodeOpts)=>{
+            const render =(n2,rootContainer)=>{
+                const rootComponent = n2.tag
+                const vnode = rootComponent.render.call(rootComponent.data())
+                // 转换为真实的dom
+                const {querySelect,createELement,appendChild} = nodeOpts
+                // 获取宿主
+                const parent =querySelect(rootContainer)
+                // 转换为真实dom
+                const child = createELement(vnode.tag)
+                if(typeof vnode.children==='string'){
+                    child.textContent = vnode.children
+                }else{
+                    // 递归
+                }
+                appendChild(child,parent)
+            }
+            return {
+                render,
+                createApp:createAppAPI(render)
+            }
+        }
+        const nodeOpts = {
+            querySelect(el){
+                return document.querySelector(el)
+            },
+            createELement(tag){
+                return document.createElement(tag)
+            },
+            appendChild(child,parent){
+                parent.appendChild(child)
+            }
+        }
+        const Vue = {
+            createApp(options){
+               return createRenderer(nodeOpts).createApp(options)
+            }
+        }
+        Vue.createApp({
+            data(){
+                return {
+                    foo:"6666"
+                }
+            },
+            // 简化了 源码中不是这样的
+            render(){
+                return {
+                    tag:"h3",
+                    children:this.foo
+                }
+            }
+        }).mount("#app")
+    </script>
+</body>
+</html>
