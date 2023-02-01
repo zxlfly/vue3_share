@@ -23,6 +23,7 @@ Proxy 用于修改某些操作的默认行为，可以理解成，在目标对�
 - ...
 ## Reflect
 ES6 中将 Object 的一些明显属于语言内部的方法移植到了 Reflect 对象上（当前某些方法会同时存在于 Object 和 Reflect 对象上），未来的新方法会只部署在 Reflect 对象上。  
+它保证了当我们的对象有继承自其它对象的值或函数时，this指针能正确的指向使用(的对象）。  
 Reflect 对象对某些方法的返回结果进行了修改，使其更合理。  
 Reflect 对象使用函数的方式实现了 Object 的命令式操作。
 - Reflect.apply(target, thisArg, args)
@@ -99,6 +100,7 @@ JavaScript 的对象（Object），本质上是键值对的集合（Hash 结构�
 proxy.js
 
 # 实现响应式功能
+源码出现了变化，基本原理不变``effectStack``去掉了，新增了activeEffect
 - effect(fn)
   - 接受副作用函数
   - 会保存一份到effectStack中备用

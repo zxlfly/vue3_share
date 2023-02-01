@@ -1,109 +1,91 @@
-const isObject = v =>v!=null&&typeof v=== 'object'
-// vue3中的响应式实现基于Proxy
-// 如果处理的是数组，执行push等操作会多次触发
-// 源码中针对集合类型的数据和普通的数据处理方式不一样，这里没有考虑集合类型的
-function reactive(obj){
-    // 如果不是对象直接返回
-    if(!isObject(obj)){
-        return obj
-    }
-    return new Proxy(obj,{
-        get(target,key){
-            console.log('get:',key)
-            const res = Reflect.get(target,key)
-            // 依赖收集
-            track(target,key)
-            // 递归处理嵌套问题
-            return isObject(res)?reactive(res):res
-        },
-        set(target,key,val){
-            console.log('set:',key)
-            const res = Reflect.set(target,key,val)
-            // 触发更新
-            trigger(target,key)
-            return res
-        },
-        deleteProperty(target,key){
-            console.log('deleteProperty:',key)
-            const res = Reflect.deleteProperty(target,key)
-            // 触发更新
-            trigger(target,key)
-            return res
-        },
-    })
-}
-// 临时保存副作用函数
-const effectStack=[]
-// 副作用函数
-function effect(fn){
-    const e = createReactiveEffect(fn)
-    e()
-    return e
-}
-function createReactiveEffect(fn){
-    const effect = function(...args){
-        try{
-            // 入栈
-            effectStack.push(effect)
-            // 执行，触发getter
-            return fn(...args)
-        }finally{
-            // 出栈
-            effectStack.pop()
-        }
-    }
-    return effect
-}
-// 存放依赖关系的数据结构
+// 存储着每个响应式对象关联的依赖（depsMap）
 const targetMap = new WeakMap()
-// 依赖跟踪收集函数
-function track(target,key){
-    // 获取副作用函数
-    const effect = effectStack[effectStack.length-1]
-    if(effect){
+// 存储着响应式对象每个属性的依赖，属性名作为key，值就是对应的dep，存储着对应的更新函数，是一个effects集，这些effect在值发生变化时重新运行。
+const depsMap = new Map();
+// 避免重复确认依赖搜集。activeEffect也会添加dep的依赖，它们是双向添加依赖关系,所以一个effect可以有多个dep，同样的dep作为订阅者也可以有多个effect。原因和vue2一样，方便做清理工作。
+let activeEffect = null
+function effect(fn) {
+    activeEffect = fn
+    fn()
+    activeEffect = null
+}
+// 为了收集依赖,将更新函数存起来
+// 存在activeEffect时才会执行
+function track(target, key) {
+    if (activeEffect) {
         let depsMap = targetMap.get(target)
-        // 首次不存在需要创建
-        if(!depsMap){
-            depsMap=new Map()
-            targetMap.set(target,depsMap)
+        if (!depsMap) {
+            targetMap.set(target, (depsMap = new Map()))
         }
-        // 获取对应key的副作用函数
-        let deps = depsMap.get(key)
-        // 首次不存在需要创建
-        if(!deps){
-            deps = new Set()
-            depsMap.set(key,deps)
+        let dep = depsMap.get(key)
+        if (!dep) {
+            depsMap.set(key, (dep = new Set()))
         }
-        // 将副作用函数添加进去
-        deps.add(effect)
+        dep.add(activeEffect)
+        // 它们是双向添加依赖关系，方便做清理工作，这里只是简单实现，没有后续相关实现
+        // activeEffect.options.onTrack({
+        //     effect:activeEffect,
+        //     target,
+        //     type,
+        //     key
+        // })
     }
 }
-// 触发对应的更新函数
-function trigger(target,key){
-    // 根据传入的target,key获取对应的副作用函数，调用他们
-    const depsMap = targetMap.get(target)
-    if(!depsMap){
-        return
+// 更新
+function trigger(target, key) {
+    let depsMap = targetMap.get(target)
+    if (!depsMap) { return }
+    let dep = depsMap.get(key)
+    if (dep) {
+        dep.forEach(effect => {
+            effect()
+        });
     }
-    const deps = depsMap.get(key)
-    if(deps){
-        deps.forEach(dep => dep());
+}
+function reactive(target) {
+    const handler = {
+        get(target, key, receiver) {
+            let result = Reflect.get(target, key, receiver)
+            track(target, key)
+            return result
+        },
+        set(target, key, value, receiver) {
+            let oldValue = target[key]
+            let result = Reflect.set(target, key, value, receiver)
+            if (oldValue != result) {
+                trigger(target, key)
+            }
+            return result
+        },
+        deleteProperty(target, key) {
+            const res = Reflect.deleteProperty(target, key)
+            if (res) {
+                trigger(target, key)
+            }
+        }
     }
+    return new Proxy(target, handler)
+}
+// 处理单值响应式
+// 非单值情况还是走的reactive
+function ref(raw) {
+    const r = {
+        get value() {
+            track(r, 'value')
+            return raw
+        },
+        set value(newVal) {
+            raw = newVal
+            trigger(r, 'value')
+        }
+    }
+    return r
 }
 
-const obj= reactive({
-    foo:'foo',
-    a:{
-        b:1
-    }
-})
-effect(()=>{
-    console.log('foo变了',obj.foo);
-})
-effect(()=>{
-    console.log('a变了',obj.a);
-})
-effect(()=>{
-    console.log('b变了',obj.a.b);
-})
-obj.a.b=2
+function computed(getter) {
+    // 接受一个 getter 函数，返回一个只读的响应式 ref 对象。
+    // 也可以可写入，需要传入一个包含get、set的对象
+    let res = ref()
+    effect(() => (res.value = getter()))
+    return res
+}

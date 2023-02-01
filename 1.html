@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    #d {
+      height: 300px;
+      border: 1px solid #000;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      font-size: 1rem;
+    }
+  </style>
+  <script>
+    (function flexible(window, document) {
+      var docEl = document.documentElement
+      function setHtmlFontSize() {
+        document.addEventListener('DOMContentLoaded', setHtmlFontSize)
+      }
+      setHtmlFontSize();
+      // 1rem = viewWidth / 750 这里不一定要是750
+      function setRemUnit() {
+        var rem = docEl.clientWidth / 750
+        docEl.style.fontSize = rem + 'px'
+      }
+      setRemUnit()
+      // 窗口变化 重新计算
+      window.addEventListener('resize', setRemUnit)
+      window.addEventListener('pageshow', function (e) {
+        if (e.persisted) {
+          setRemUnit()
+        }
+      })
+    }(window, document))
+    var aa = {
+      "b": 1
+    }
+    function aaa() { }
+  </script>
+</head>
+
+<body>
+  <div id="d">
+    <style>
+      .h1 {
+        counter-reset: 1;
+        margin: 0 auto;
+        width: 100px;
+
+        height: 50px;
+        background: rgb(175, 155, 38);
+      }
+    </style>
+    <div class="h1">666</div>
+  </div>
+  <script>
+    var a = document.querySelector('#d')
+    console.log(a.textContent);
+  </script>
+</body>
+
+</html>
