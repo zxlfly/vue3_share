@@ -103,12 +103,16 @@ proxy.js
 源码出现了变化，基本原理不变``effectStack``去掉了，新增了activeEffect
 - effect(fn)
   - 接受副作用函数
-  - 会保存一份到effectStack中备用
+  - 会保存一份到activeEffect中备用
   - 执行一次触发里面的响应式数据的getter
 - track
   - getter中调用，依赖搜集
-  - 把储存的回调函数和当前的target，key之间建立映射关系，未来如果目标发生变化，直接找到对应的副作用函数执行就可以完成更新
+  - 把储存的更新函数和当前的target，key之间建立映射关系，未来如果目标发生变化，直接找到对应的副作用函数执行就可以完成更新
   - 结构：``{target:{key(Map类型):[fn1,...](Set类型)}}(WeakMap类型)``
 - trigger
   - setter中调用
   - 把target，key对应的函数都执行一遍
+
+**理解响应式原理首先要理解targetMap、depsMap、dep之间的关系。targetMap存储着每个响应式对象关联的依赖，存的就是depsMap；depsMap存储着响应式对象每个属性的依赖，属性名作为key，值就是对应的dep，是一个集合，存储着对应的更新函数。属性key和对应的dep之间是双向添加依赖关系，方便做清理工作。**  
+**当初始化时，会触发get，从而设置activeEffect为当前渲染副作用effect。getter中调用track实现搜集。**  
+**当更新执行时，会触发set，执行即trigger，把target，key对应的更新函数都执行一遍。**
