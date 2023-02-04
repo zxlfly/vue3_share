@@ -104,15 +104,26 @@ proxy.js
 - effect(fn)
   - 接受副作用函数
   - 会保存一份到activeEffect中备用
-  - 执行一次触发里面的响应式数据的getter
+  - 执行一次触发里面的响应式数据的getter，触发依赖收集
 - track
   - getter中调用，依赖搜集
-  - 把储存的更新函数和当前的target，key之间建立映射关系，未来如果目标发生变化，直接找到对应的副作用函数执行就可以完成更新
+  -     把存储更新函数的activeEffect和当前的target，key之间建立映射关系，未来如果目标发生变化，直接找到对应的副作用函数执行就可以完成更新
   - 结构：``{target:{key(Map类型):[fn1,...](Set类型)}}(WeakMap类型)``
 - trigger
   - setter中调用
   - 把target，key对应的函数都执行一遍
 
-**理解响应式原理首先要理解targetMap、depsMap、dep之间的关系。targetMap存储着每个响应式对象关联的依赖，存的就是depsMap；depsMap存储着响应式对象每个属性的依赖，属性名作为key，值就是对应的dep，是一个集合，存储着对应的更新函数。属性key和对应的dep之间是双向添加依赖关系，方便做清理工作。**  
-**当初始化时，会触发get，从而设置activeEffect为当前渲染副作用effect。getter中调用track实现搜集。**  
-**当更新执行时，会触发set，执行即trigger，把target，key对应的更新函数都执行一遍。**
+**理解响应式原理首先要理解targetMap、depsMap、dep之间的关系。targetMap存储着每个响应式对象关联的依赖，存的就是depsMap；depsMap存储着响应式对象每个属性的依赖，属性名作为key，值就是对应的dep，是一个集合，存储着对应的更新函数（实际就是activeEffect）。属性key和对应的dep之间是双向添加依赖关系，方便做清理工作。**  
+- **当初始化时，会触发get，从而设置activeEffect为当前渲染副作用effect。getter中调用track实现依赖搜集。**  
+  - 初始化挂载时调用mountComponent，通过createComponentInstance创建组件实例
+  - 通过setupComponent初始化组件实例（提供组件初始化需要的状态数据方法）,
+    - 调用setupStatefulComponent，给组件设置代理PublicInstanceProxyHandlers，get、set就是这里处理
+    - 如果设置了setup函数，则执行setup函数，并判断其返回值的类型。若返回值类型为函数时，则设置组件实例render的值为setupResult，否则作为组件实例setupState的值；
+    - 这个时候组件实例instance的data、proxy、render、setupState已经绑定上了初始值。
+    - 组件实例的render方法分三种
+      - setup返回的函数
+      - 组件存在render方法
+      - 组件存在template模板，将其编译得来
+  - 调用setupRenderEffect安装渲染副作用函数，首先调用effect就收组件更新函数为参数，完成依赖收集，接着将effect.run()以箭头函数的形式当做更新函数赋值给组件实例的update属性，并且自行一次，触发首次更新，完成初始化渲染。
+- **当更新执行时，会触发set，执行即trigger，把target，key对应的更新函数都执行一遍。**
+  - 设置组件实例setupComponent阶段会创建渲染上下文代理，而在调用渲染副作用函数过程中，会执行组件的render方法，同时会触发渲染上下文代理的PublicInstanceProxyHandlers的set，里面会调用trigger从而实现触发更新。因为render函数接受的第一个参数是_ctx即渲染组件的代理,此时调用set的时候就会触发之前设置代理时通过PublicInstanceProxyHandlers设置的set，从而实现更新。
