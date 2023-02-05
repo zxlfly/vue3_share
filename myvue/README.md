@@ -119,7 +119,7 @@ proxy.js
   - 通过setupComponent初始化组件实例（提供组件初始化需要的状态数据方法）,
     - 调用setupStatefulComponent，给组件设置代理PublicInstanceProxyHandlers，get、set就是这里处理
     - 如果设置了setup函数，则执行setup函数，并判断其返回值的类型。若返回值类型为函数时，则设置组件实例render的值为setupResult，否则作为组件实例setupState的值；
-    - 这个时候组件实例instance的data、proxy、render、setupState已经绑定上了初始值。
+    - 这个时候组件实例instance的data、proxy、render、setupState已经绑定上了初始值（对这个值也会做代理，处理ref类型的值，使用的时候可以直接使用不需要.value）。
     - 组件实例的render方法分三种
       - setup返回的函数
       - 组件存在render方法
