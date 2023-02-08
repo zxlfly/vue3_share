@@ -102,6 +102,9 @@ proxy.js
 # 实现响应式功能
 源码出现了变化，基本原理不变``effectStack``去掉了，新增了activeEffect
 - effect(fn)
+  - 3.2之后改了该函数还是存在用户可以使用
+  - 内部初始化直接使用的new ReactiveEffect
+  - 因为源码做了扩展，需要一个 scope 参数来收集所有的 effect，为了不影响用户使用的api，做了区分
   - 接受副作用函数
   - 会保存一份到activeEffect中备用
   - 执行一次触发里面的响应式数据的getter，触发依赖收集
@@ -124,6 +127,13 @@ proxy.js
       - setup返回的函数
       - 组件存在render方法
       - 组件存在template模板，将其编译得来
-  - 调用setupRenderEffect安装渲染副作用函数，首先调用effect接收组件更新函数为参数，完成依赖收集，接着将effect.run()以箭头函数的形式当做更新函数赋值给组件实例的update属性，并且自行一次，触发首次更新，完成初始化渲染。
+  - 调用setupRenderEffect安装渲染副作用函数，首先创建一个更新函数，然后通过调用new ReactiveEffect以组件更新函数为第一个参数生成一个effect，并且完成依赖收集，接着将effect.run()以箭头函数的形式当做更新函数赋值给组件实例的update属性，并且自行一次，触发首次更新，完成初始化渲染。
 - **当更新执行时，会触发set，执行即trigger，把target，key对应的更新函数都执行一遍。**
   - 设置组件实例setupComponent阶段会创建渲染上下文代理，而在调用渲染副作用函数过程中，会执行组件的render方法，同时会触发渲染上下文代理的PublicInstanceProxyHandlers的set，里面会调用trigger从而实现触发更新。因为render函数接受的第一个参数是_ctx即渲染组件的代理,此时调用set的时候就会触发之前设置代理时通过PublicInstanceProxyHandlers设置的set，从而实现更新。
+
+## patch算法
+由于虚拟dome记录了稳定结构，所以当存在（dynamicChildren）稳定结构时，就可以通过编译时的优化做到精确定位更新，（patchBlockChildren）将两组子元素的（dynamicChildren）稳定结构取出作比较。
+不存在稳定结构时，就和vue2一样走普通的diff，但是vue3的diff有变化，一样会假设开头和结尾有相同的，进行双端比较，但是不交叉比较了。剩下的做乱序处理，核心逻辑在于通过新老节点的位置变化构建一个最大递增子序列，从而保证通过最小的移动patch实现节点的复用。
+根据剩下新子节生成key和index的映射表map（和react不一样这里使用新节点生成map）。
+根据剩下新老节点的相对下标生成一个数组array，默认值为0，表示不能复用。数组索引按顺序表示新子节点。
+接着遍历老节点,通过map查找，留下可以复用的，卸载不存在的，并且更新array,将对应新节点下标位置的值改成老节点下标，根据当前节点在新节点中的位置和上次复用节点的位置判断，这次的位置在上次复用位置的前面，就需要移动，后面倒序遍历新节点完成后续操作之前就会求一个最长递增子序列。以尽可能的减少dom操作。如果不存在可移动的，就不会生成最长递增子序列。
