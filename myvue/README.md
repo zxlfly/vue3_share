@@ -127,7 +127,7 @@ proxy.js
       - setup返回的函数
       - 组件存在render方法
       - 组件存在template模板，将其编译得来
-  - 调用setupRenderEffect安装渲染副作用函数，首先创建一个更新函数，然后通过调用new ReactiveEffect以组件更新函数为第一个参数生成一个effect，并且完成依赖收集，接着将effect.run()以箭头函数的形式当做更新函数赋值给组件实例的update属性，并且自行一次，触发首次更新，完成初始化渲染。
+  - 调用setupRenderEffect安装渲染副作用函数，首先创建一个更新函数，然后通过调用new ReactiveEffect以组件更新函数为第一个参数生成一个effect对象，接着将effect.run()以箭头函数的形式当做更新函数赋值给组件实例的update属性，并且自行一次，触发依赖收集，完成初始化渲染。
 - **当更新执行时，会触发set，执行即trigger，把target，key对应的更新函数都执行一遍。**
   - 设置组件实例setupComponent阶段会创建渲染上下文代理，而在调用渲染副作用函数过程中，会执行组件的render方法，同时会触发渲染上下文代理的PublicInstanceProxyHandlers的set，里面会调用trigger从而实现触发更新。因为render函数接受的第一个参数是_ctx即渲染组件的代理,此时调用set的时候就会触发之前设置代理时通过PublicInstanceProxyHandlers设置的set，从而实现更新。
 
