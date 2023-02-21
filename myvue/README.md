@@ -105,9 +105,9 @@ proxy.js
   - 3.2之后改了该函数还是存在用户可以使用
   - 内部初始化直接使用的new ReactiveEffect
   - 因为源码做了扩展，需要一个 scope 参数来收集所有的 effect，为了不影响用户使用的api，做了区分
-  - 接受副作用函数
-  - 会保存一份到activeEffect中备用
-  - 执行一次触发里面的响应式数据的getter，触发依赖收集
+  - 接受副作用函数，会保存在内部的run方法中
+  - 执行run方法时，会将当前的effect对象保存一份到activeEffect中备用
+  - 执行run，触发依赖收集
 - track
   - getter中调用，依赖搜集
   -     把存储更新函数的activeEffect和当前的target，key之间建立映射关系，未来如果目标发生变化，直接找到对应的副作用函数执行就可以完成更新
@@ -116,7 +116,7 @@ proxy.js
   - setter中调用
   - 把target，key对应的函数都执行一遍
 
-**理解响应式原理首先要理解targetMap、depsMap、dep之间的关系。targetMap存储着每个响应式对象关联的依赖，存的就是depsMap；depsMap存储着响应式对象每个属性的依赖，属性名作为key，值就是对应的dep，是一个集合，存储着对应的更新函数（实际就是activeEffect）。属性key和对应的dep之间是双向添加依赖关系，方便做清理工作。**  
+**理解响应式原理首先要理解targetMap、depsMap、dep之间的关系。targetMap存储着每个响应式对象关联的依赖，存的就是depsMap；depsMap存储着响应式对象每个属性的依赖，属性名作为key，值就是对应的dep，是一个集合，存储着对应的包含更新函数的一个对象（实际就是activeEffect）。属性key和对应的dep之间是双向添加依赖关系，方便做清理工作。**  
 - **当初始化时，会触发get，从而设置activeEffect为当前渲染副作用effect。getter中调用track实现依赖搜集。**  
   - 初始化挂载时调用mountComponent，通过createComponentInstance创建组件实例
   - 通过setupComponent初始化组件实例（提供组件初始化需要的状态数据方法）,
